@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jatin Jolly — Product Marketing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  /* ─── RESET & TOKENS ─── */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #070810;
+    --surface: #0d0f1e;
+    --surface2: #131629;
+    --accent: #5b6ef5;
+    --accent2: #a78bfa;
+    --accent3: #38bdf8;
+    --gold: #f4c94e;
+    --text: #e8eaf6;
+    --muted: #6b7280;
+    --border: rgba(91,110,245,0.18);
+    --glow: rgba(91,110,245,0.35);
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.65;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ─── LOADING SCREEN ─── */
+  #loader {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 24px;
+    transition: opacity 0.7s ease, visibility 0.7s ease;
+  }
+  #loader.hidden { opacity: 0; visibility: hidden; }
+  .loader-logo {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 800;
+    letter-spacing: -2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3), var(--accent));
+    background-size: 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 2s linear infinite;
+  }
+  .loader-bar {
+    width: 200px; height: 2px;
+    background: var(--surface2);
+    border-radius: 2px; overflow: hidden;
+  }
+  .loader-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    animation: loadFill 1.6s cubic-bezier(.4,0,.2,1) forwards;
+  }
+  @keyframes loadFill { from { width: 0; } to { width: 100%; } }
+
+  /* ─── CUSTOM CURSOR ─── */
+  #cursor-dot {
+    position: fixed; width: 10px; height: 10px;
+    background: var(--accent2);
+    border-radius: 50%; pointer-events: none; z-index: 9998;
+    transform: translate(-50%,-50%);
+    transition: transform 0.1s, background 0.2s;
+    box-shadow: 0 0 12px var(--accent2), 0 0 28px var(--accent);
+  }
+  #cursor-ring {
+    position: fixed; width: 34px; height: 34px;
+    border: 1.5px solid rgba(167,139,250,0.55);
+    border-radius: 50%; pointer-events: none; z-index: 9997;
+    transform: translate(-50%,-50%);
+    transition: transform 0.18s cubic-bezier(.25,.46,.45,.94), width 0.2s, height 0.2s;
+  }
+  body:hover #cursor-ring { }
+  a:hover ~ #cursor-ring, button:hover ~ #cursor-ring { width: 52px; height: 52px; }
+
+  /* ─── CANVAS BACKGROUND ─── */
+  #particle-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ─── LAYOUT ─── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 32px; position: relative; z-index: 1; }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 20px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(7,8,16,0.7);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: var(--font-display);
+    font-weight: 800; font-size: 1.15rem;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a {
+    text-decoration: none; font-size: 0.85rem; font-weight: 500;
+    color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+
+  /* ─── HERO ─── */
+  #hero {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 120px 32px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero-inner { position: relative; z-index: 2; }
+  .hero-tag {
+    display: inline-block;
+    font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600;
+    border: 1px solid var(--border);
+    padding: 6px 16px; border-radius: 20px;
+    margin-bottom: 28px;
+    background: rgba(91,110,245,0.06);
+  }
+  .hero-name {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 10vw, 7.5rem);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -3px;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #fff 0%, var(--accent2) 35%, var(--accent3) 60%, #fff 100%);
+    background-size: 300%;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    animation: shimmer 4s linear infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+  }
+  .hero-role {
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    font-weight: 600; color: var(--muted);
+    letter-spacing: 0.02em; margin-bottom: 28px;
+  }
+  .hero-desc {
+    max-width: 560px; margin: 0 auto 42px;
+    font-size: 1.05rem; color: #9ca3af; line-height: 1.7;
+  }
+  .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 28px; border-radius: 8px;
+    font-family: var(--font-body); font-weight: 500; font-size: 0.95rem;
+    text-decoration: none; cursor: none;
+    transition: all 0.22s ease; border: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    box-shadow: 0 4px 28px rgba(91,110,245,0.35);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(91,110,245,0.55); }
+  .btn-outline {
+    border: 1px solid var(--border); color: var(--text);
+    background: rgba(255,255,255,0.03);
+  }
+  .btn-outline:hover { background: rgba(91,110,245,0.09); border-color: var(--accent); transform: translateY(-2px); }
+
+  /* Hero Glow */
+  .hero-glow {
+    position: absolute; width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(91,110,245,0.14) 0%, transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+    pointer-events: none; border-radius: 50%;
+    animation: pulseGlow 5s ease-in-out infinite;
+  }
+  @keyframes pulseGlow { 0%,100%{opacity:0.7;transform:translate(-50%,-50%) scale(1);} 50%{opacity:1;transform:translate(-50%,-50%) scale(1.12);} }
+
+  /* ─── 3D FLOATING CARD ─── */
+  .card-3d-wrap {
+    perspective: 900px;
+    width: 340px; height: 200px;
+    margin: 60px auto 0;
+    position: relative;
+  }
+  .card-3d {
+    width: 100%; height: 100%;
+    position: relative; transform-style: preserve-3d;
+    animation: card3DFloat 8s ease-in-out infinite;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--surface2) 0%, #1a1e3a 100%);
+    border: 1px solid var(--border);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 40px rgba(91,110,245,0.12);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px 28px;
+    gap: 18px;
+  }
+  @keyframes card3DFloat {
+    0%   { transform: rotateX(4deg) rotateY(-12deg) translateY(0px); }
+    25%  { transform: rotateX(-3deg) rotateY(10deg) translateY(-10px); }
+    50%  { transform: rotateX(5deg) rotateY(14deg) translateY(-4px); }
+    75%  { transform: rotateX(-2deg) rotateY(-8deg) translateY(-14px); }
+    100% { transform: rotateX(4deg) rotateY(-12deg) translateY(0px); }
+  }
+  .card-3d-avatar {
+    width: 64px; height: 64px; flex-shrink: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; color: #fff;
+    position: relative;
+  }
+  /* Pulsing ripple rings on avatar */
+  .card-3d-avatar::before, .card-3d-avatar::after,
+  .card-3d-avatar .ring3 {
+    content: ''; position: absolute; border-radius: 50%;
+    border: 1.5px solid var(--accent2);
+    animation: rippleRing 2.4s ease-out infinite;
+  }
+  .card-3d-avatar::before { width: 84px; height: 84px; animation-delay: 0s; }
+  .card-3d-avatar::after  { width: 106px; height: 106px; animation-delay: 0.7s; }
+  .card-3d-avatar .ring3  { width: 130px; height: 130px; animation-delay: 1.4s; }
+  @keyframes rippleRing {
+    0%   { opacity: 0.7; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.25); }
+  }
+  .card-3d-info { text-align: left; }
+  .card-3d-info h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: var(--text); margin-bottom: 4px; }
+  .card-3d-info p  { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+  .card-3d-info .badge {
+    display: inline-block; margin-top: 8px;
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--accent2);
+    background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 4px; padding: 2px 8px;
+  }
+
+  /* ─── MARQUEE ─── */
+  .marquee-section {
+    padding: 48px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    overflow: hidden; position: relative; z-index: 1;
+  }
+  .marquee-label {
+    text-align: center; font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 24px;
+  }
+  .marquee-track-wrap { overflow: hidden; }
+  .marquee-track {
+    display: flex; gap: 56px; white-space: nowrap;
+    animation: marqueeScroll 22s linear infinite;
+  }
+  .marquee-track:hover { animation-play-state: paused; }
+  .marquee-item {
+    flex-shrink: 0; font-family: var(--font-display);
+    font-weight: 700; font-size: 1.05rem;
+    color: var(--muted); letter-spacing: 0.04em;
+    transition: color 0.2s;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .marquee-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+  .marquee-item:hover { color: var(--text); }
+  @keyframes marqueeScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ─── SECTIONS ─── */
+  section { padding: 100px 0; position: relative; z-index: 1; }
+  .section-label {
+    font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::after { content: ''; flex: 1; max-width: 60px; height: 1px; background: var(--accent); opacity: 0.4; }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 800; line-height: 1.1; letter-spacing: -1px;
+    margin-bottom: 20px;
+  }
+  .section-sub { color: var(--muted); max-width: 540px; font-size: 1rem; }
+
+  /* ─── REVEAL ANIMATIONS ─── */
+  .reveal { opacity: 0; transition: opacity 0.7s ease, transform 0.7s cubic-bezier(.25,.46,.45,.94); }
+  .reveal.fade-up    { transform: translateY(48px); }
+  .reveal.slide-left { transform: translateX(-60px); }
+  .reveal.slide-right{ transform: translateX(60px); }
+  .reveal.visible    { opacity: 1; transform: none; }
+
+  /* ─── EXPERIENCE ─── */
+  .timeline { position: relative; padding-left: 32px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 6px; top: 0; bottom: 0; width: 1px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+  }
+  .tl-item { position: relative; margin-bottom: 52px; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -29px; top: 6px;
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--bg);
+    box-shadow: 0 0 12px var(--glow);
+  }
+  .tl-head { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+  .tl-company { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: var(--text); }
+  .tl-period { font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+  .tl-role { font-size: 0.88rem; color: var(--accent2); font-weight: 500; margin-bottom: 12px; }
+  .tl-bullets { list-style: none; }
+  .tl-bullets li {
+    position: relative; padding-left: 20px; margin-bottom: 8px;
+    font-size: 0.92rem; color: #9ca3af; line-height: 1.6;
+  }
+  .tl-bullets li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); font-size: 0.75rem; top: 3px; }
+
+  /* ─── SKILLS ─── */
+  .skills-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 48px 56px; }
+  .skill-group-title { font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; color: var(--accent2); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 20px; }
+  .skill-bar-item { margin-bottom: 18px; }
+  .skill-bar-label { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--text); margin-bottom: 7px; }
+  .skill-bar-label span:last-child { color: var(--muted); font-size: 0.8rem; }
+  .skill-bar-track {
+    height: 5px; background: var(--surface2); border-radius: 5px; overflow: hidden;
+  }
+  .skill-bar-fill {
+    height: 100%; width: 0;
+    border-radius: 5px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 1.2s cubic-bezier(.25,.46,.45,.94);
+    box-shadow: 0 0 10px rgba(91,110,245,0.4);
+  }
+
+  /* ─── PROJECT CARDS ─── */
+  .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+  .proj-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px;
+    position: relative; overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .proj-card::before {
+    content: '';
+    position: absolute; top: 0; left: -100%; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), var(--accent3), transparent);
+    background-size: 200%;
+    transition: left 0.5s ease;
+  }
+  .proj-card:hover::before { left: 0; animation: borderSweep 1s linear; }
+  @keyframes borderSweep { from{background-position: 0%} to{background-position: 200%} }
+  .proj-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.35), 0 0 24px rgba(91,110,245,0.12);
+    border-color: rgba(91,110,245,0.3);
+  }
+  .proj-icon {
+    width: 46px; height: 46px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; margin-bottom: 18px;
+  }
+  .proj-title { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin-bottom: 8px; }
+  .proj-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.6; margin-bottom: 18px; }
+  .proj-stat { display: flex; gap: 8px; flex-wrap: wrap; }
+  .stat-pill {
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent2); background: rgba(167,139,250,0.08);
+    border: 1px solid rgba(167,139,250,0.18);
+    border-radius: 20px; padding: 4px 12px;
+  }
+
+  /* ─── EDUCATION ─── */
+  .edu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  .edu-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .edu-card:hover { border-color: rgba(91,110,245,0.4); box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
+  .edu-degree { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
+  .edu-school { font-size: 0.88rem; color: var(--accent2); margin-bottom: 4px; }
+  .edu-meta { font-size: 0.8rem; color: var(--muted); }
+
+  /* ─── CONTACT ─── */
+  #contact { text-align: center; padding: 100px 0 120px; }
+  .contact-inner { position: relative; display: inline-block; }
+  /* Pulsing ripple rings */
+  .contact-ripple {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    border-radius: 50%; pointer-events: none;
+  }
+  .contact-ripple-1 { width: 260px; height: 260px; border: 1px solid rgba(91,110,245,0.25); animation: contactRipple 3s ease-out infinite; }
+  .contact-ripple-2 { width: 380px; height: 380px; border: 1px solid rgba(91,110,245,0.14); animation: contactRipple 3s ease-out 0.8s infinite; }
+  .contact-ripple-3 { width: 500px; height: 500px; border: 1px solid rgba(91,110,245,0.07); animation: contactRipple 3s ease-out 1.6s infinite; }
+  @keyframes contactRipple {
+    0%  { opacity: 1; transform: translate(-50%,-50%) scale(0.92); }
+    100%{ opacity: 0; transform: translate(-50%,-50%) scale(1.12); }
+  }
+  .contact-avatar {
+    width: 100px; height: 100px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 800; font-size: 2rem; color: #fff;
+    margin: 0 auto 40px; position: relative; z-index: 2;
+    animation: avatarPulse 3s ease-in-out infinite;
+  }
+  @keyframes avatarPulse { 0%,100%{box-shadow: 0 0 0 0 rgba(91,110,245,0.5);} 50%{box-shadow: 0 0 0 16px rgba(91,110,245,0);} }
+  .contact-links { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 36px; }
+  .contact-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 13px 22px; border-radius: 10px;
+    font-size: 0.9rem; font-weight: 500;
+    text-decoration: none; color: var(--text);
+    background: var(--surface); border: 1px solid var(--border);
+    transition: all 0.22s ease;
+  }
+  .contact-link:hover { border-color: var(--accent); background: rgba(91,110,245,0.08); transform: translateY(-2px); }
+  .contact-link svg { flex-shrink: 0; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    text-align: center; padding: 28px; font-size: 0.8rem;
+    color: var(--muted); border-top: 1px solid var(--border);
+    position: relative; z-index: 1;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+    .container { padding: 0 20px; }
+    .card-3d-wrap { width: 290px; }
+    body { cursor: auto; }
+    #cursor-dot, #cursor-ring { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo">JJ</div>
+  <div class="loader-bar"><div class="loader-bar-fill"></div></div>
+</div>
+
+<!-- CUSTOM CURSOR -->
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<!-- PARTICLE CANVAS -->
+<canvas id="particle-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Jatin Jolly</div>
+  <ul class="nav-links">
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Impact</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section id="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-inner">
+    <div class="hero-tag">✦ Product Marketing Professional · SW Calgary, AB</div>
+    <h1 class="hero-name">Jatin<br>Jolly</h1>
+    <p class="hero-role">Strategic GTM &amp; Product Marketing</p>
+    <p class="hero-desc">Driving go-to-market initiatives, high-impact product launches, and growth campaigns across SaaS, AI, and B2B technology environments.</p>
+    <div class="hero-btns">
+      <a href="#contact" class="btn btn-primary">Get in Touch →</a>
+      <a href="#experience" class="btn btn-outline">View Experience</a>
+    </div>
+
+    <!-- 3D FLOATING CARD -->
+    <div class="card-3d-wrap">
+      <div class="card-3d">
+        <div class="card-3d-avatar">
+          JJ
+          <span class="ring3"></span>
+        </div>
+        <div class="card-3d-info">
+          <h3>Jatin Jolly</h3>
+          <p>+1 (587) 304-9394<br>jatinjollyjj@gmail.com</p>
+          <span class="badge">Open to Opportunities</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ MARQUEE ═══════════ -->
+<div class="marquee-section">
+  <p class="marquee-label">Experience across</p>
+  <div class="marquee-track-wrap">
+    <div class="marquee-track" id="marqueeTrack">
+      <!-- items duplicated for seamless loop via JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ EXPERIENCE ═══════════ -->
+<section id="experience">
+  <div class="container">
+    <p class="section-label reveal fade-up">Career Journey</p>
+    <h2 class="section-title reveal fade-up">Professional Experience</h2>
+    <p class="section-sub reveal fade-up" style="margin-bottom:60px;">10+ years driving measurable growth across four continents of marketing practice.</p>
+
+    <div class="timeline">
+
+      <div class="tl-item reveal slide-left">
+        <div class="tl-head">
+          <span class="tl-company">Government e Marketplace (GeM)</span>
+          <span class="tl-period">Feb 2024 – Aug 2024</span>
+        </div>
+        <div class="tl-role">Product Marketing &amp; Communications Coordinator · New Delhi, India</div>
+        <ul class="tl-bullets">
+          <li>Orchestrated global-scale product communication plans for a national GovTech platform, driving a <strong>40% increase in user engagement</strong> through targeted stakeholder alignment.</li>
+          <li>Led cross-functional go-to-market plans for new feature launches, translating complex product positioning into customer-focused messaging.</li>
+          <li>Drove platform adoption by <strong>45%</strong> through high-impact sales tools including product briefs, presentations, and revamped web presence.</li>
+          <li>Collaborated with SMEs and PR teams to ensure organisational readiness and quality internal field communications.</li>
+        </ul>
+      </div>
+
+      <div class="tl-item reveal slide-right">
+        <div class="tl-head">
+          <span class="tl-company">Pinaki Softcon Pvt. Ltd.</span>
+          <span class="tl-period">Jun 2023 – Mar 2024</span>
+        </div>
+        <div class="tl-role">Product Marketing Coordinator · Canada &amp; India</div>
+        <ul class="tl-bullets">
+          <li>Delivered comprehensive GTM execution for the "Cooddle" SaaS launch, resulting in a <strong>30% rise in inbound product inquiries</strong> within 90 days.</li>
+          <li>Defined value proposition for AI-based solutions via deep competitive research and strategic battlecards for regional sales teams.</li>
+          <li>Optimised product lifecycle through ongoing marketing activities ensuring all localisation efforts met Canadian market needs.</li>
+          <li>Implemented automated email marketing and lead funnel optimisations, <strong>reducing CAC by 15%</strong>.</li>
+        </ul>
+      </div>
+
+      <div class="tl-item reveal slide-left">
+        <div class="tl-head">
+          <span class="tl-company">Eldeco Infrastructure &amp; Properties Ltd</span>
+          <span class="tl-period">Apr 2019 – Jun 2023</span>
+        </div>
+        <div class="tl-role">Marketing Coordinator – Product Launches · New Delhi, India</div>
+        <ul class="tl-bullets">
+          <li>Directed 360° marketing and communication plans for <strong>12+ major project launches</strong>, managing a portfolio valued in the millions.</li>
+          <li>Architected multi-channel lead generation initiatives delivering a <strong>35% increase in qualified leads</strong>.</li>
+          <li>Developed training programs and sales enablement materials supporting a <strong>50+ professional sales team</strong>.</li>
+          <li>Managed complex vendor and stakeholder relationships as matrix manager, delivering all launches on time, on budget, on quality.</li>
+        </ul>
+      </div>
+
+      <div class="tl-item reveal slide-right">
+        <div class="tl-head">
+          <span class="tl-company">R K Swamy BBDO Pvt. Ltd.</span>
+          <span class="tl-period">Jul 2015 – Apr 2019</span>
+        </div>
+        <div class="tl-role">Brand &amp; Campaign Coordinator · New Delhi, India</div>
+        <ul class="tl-bullets">
+          <li>Spearheaded rollout of integrated campaigns for national brands, generating <strong>$2M+ in new business growth</strong>.</li>
+          <li>Refined brand positioning by translating technical product features into customer-centric benefit statements across TV and digital.</li>
+          <li>Reported against key project metrics to provide data-driven insights improving future campaign performance.</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ SKILLS ═══════════ -->
+<section id="skills" style="background: linear-gradient(180deg, transparent, rgba(91,110,245,0.03), transparent);">
+  <div class="container">
+    <p class="section-label reveal fade-up">Capabilities</p>
+    <h2 class="section-title reveal fade-up">Technical Skills</h2>
+    <p class="section-sub reveal fade-up" style="margin-bottom:56px;">A full-stack marketing toolkit spanning strategy, operations, and analytics.</p>
+
+    <div class="skills-grid">
+      <div class="reveal slide-left">
+        <div class="skill-group-title">GTM &amp; Strategy</div>
+        <div class="skill-bar-item">
+          <div class="skill-bar-label"><span>Product Launch Plans</span><span>95%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" data-width="95"></div></div>
+        </div>
+        <div class="skill-bar-item">
+          <div class="skill-bar-label"><span>Value Proposition</span><span>92%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" data-width="92"></div></div>
+        </div>
+        <div class="skill-bar-item">
+          <div class="skill-bar-label"><span>Competitive Research</span><span>88%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" data-width="88"></div></div>
+        </div>
+        <div class="skill-bar-item">
+          <div class="skill-bar-label"><span>Stakeholder Alignment</span><span>90%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" data-width="90"></div></div>
+        </div>
+      </div>
+
+      <div class="reveal fade-up">
+        <div class="skill-group-title">Marketing Operations</div>
+        <div class="skill-bar-item">
+          <div class="skill-bar-label"><span>Demand Generation</span><span>87%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" data-width="87"></div></div>
+        </div>
+        <div class="skill-bar-item">
+          <div class="skill-bar-label"><span>Email Automation</span><span>85%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" data-width="85"></div></div>
+        </div>
+        <div class="skill-bar-item">
+          <div class="skill-bar-label"><span>Lead Funnel Optimisation</span><span>89%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" data-width="89"></div></div>
+        </div>
+        <div class="skill-bar-item">
+          <div class="skill-bar-label"><span>CRM (HubSpot / Salesforce)</span><span>82%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" data-width="82"></div></div>
+        </div>
+      </div>
+
+      <div class="reveal slide-right">
+        <div class="skill-group-title">Technical Tools</div>
+        <div class="skill-bar-item">
+          <div class="skill-bar-label"><span>Google Analytics 4</span><span>88%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" data-width="88"></div></div>
+        </div>
+        <div class="skill-bar-item">
+          <div class="skill-bar-label"><span>SEMrush / SEO/GEO/AEO</span><span>83%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" data-width="83"></div></div>
+        </div>
+        <div class="skill-bar-item">
+          <div class="skill-bar-label"><span>Tableau / BI Reporting</span><span>80%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" data-width="80"></div></div>
+        </div>
+        <div class="skill-bar-item">
+          <div class="skill-bar-label"><span>Adobe Creative Cloud</span><span>78%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" data-width="78"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ IMPACT / PROJECTS ═══════════ -->
+<section id="projects">
+  <div class="container">
+    <p class="section-label reveal fade-up">Key Wins</p>
+    <h2 class="section-title reveal fade-up">Measurable Impact</h2>
+    <p class="section-sub reveal fade-up" style="margin-bottom:52px;">Results-driven campaigns across GovTech, SaaS, real estate, and consumer brands.</p>
+
+    <div class="projects-grid">
+      <div class="proj-card reveal fade-up">
+        <div class="proj-icon">🏛️</div>
+        <div class="proj-title">GeM GovTech Platform</div>
+        <div class="proj-desc">Orchestrated product communication for India's national government marketplace, unifying messaging across millions of public sector users.</div>
+        <div class="proj-stat">
+          <span class="stat-pill">+40% Engagement</span>
+          <span class="stat-pill">+45% Adoption</span>
+        </div>
+      </div>
+      <div class="proj-card reveal fade-up" style="transition-delay:0.1s">
+        <div class="proj-icon">🚀</div>
+        <div class="proj-title">Cooddle SaaS Launch</div>
+        <div class="proj-desc">End-to-end GTM execution for an AI-powered SaaS product — from competitive analysis to battlecards and localised Canadian campaign.</div>
+        <div class="proj-stat">
+          <span class="stat-pill">+30% Inbound in 90d</span>
+          <span class="stat-pill">-15% CAC</span>
+        </div>
+      </div>
+      <div class="proj-card reveal fade-up" style="transition-delay:0.2s">
+        <div class="proj-icon">🏙️</div>
+        <div class="proj-title">Eldeco 12+ Launches</div>
+        <div class="proj-desc">Led 360° marketing for a sprawling real estate portfolio — multi-channel lead gen, sales training, and vendor orchestration at scale.</div>
+        <div class="proj-stat">
+          <span class="stat-pill">+35% Qualified Leads</span>
+          <span class="stat-pill">50+ Reps Enabled</span>
+        </div>
+      </div>
+      <div class="proj-card reveal fade-up" style="transition-delay:0.3s">
+        <div class="proj-icon">📺</div>
+        <div class="proj-title">R K Swamy BBDO Campaigns</div>
+        <div class="proj-desc">Integrated brand campaigns for national advertisers spanning TV, OOH, and digital — translating complex features to consumer benefits.</div>
+        <div class="proj-stat">
+          <span class="stat-pill">$2M+ New Business</span>
+          <span class="stat-pill">Multi-Channel</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ EDUCATION ═══════════ -->
+<section id="education" style="padding-bottom: 60px;">
+  <div class="container">
+    <p class="section-label reveal fade-up">Credentials</p>
+    <h2 class="section-title reveal fade-up">Education</h2>
+    <div class="edu-grid" style="margin-top:44px;">
+      <div class="edu-card reveal slide-left">
+        <div class="edu-degree">Postgraduate — Digital Marketing</div>
+        <div class="edu-school">Bow Valley College · Calgary, AB</div>
+        <div class="edu-meta">2025 – 2026 · GPA 3.7/4.0 · Dean's List</div>
+      </div>
+      <div class="edu-card reveal fade-up">
+        <div class="edu-degree">Postgraduate — Marketing Management</div>
+        <div class="edu-school">Sheridan College · Mississauga, ON</div>
+        <div class="edu-meta">2024 – 2025</div>
+      </div>
+      <div class="edu-card reveal slide-right">
+        <div class="edu-degree">MBA — Marketing &amp; Advertising</div>
+        <div class="edu-school">Bharati Vidyapeeth University · New Delhi</div>
+        <div class="edu-meta">2015 – 2017</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ CONTACT ═══════════ -->
+<section id="contact">
+  <div class="container">
+    <p class="section-label reveal fade-up" style="justify-content:center">Let's Connect</p>
+    <h2 class="section-title reveal fade-up" style="text-align:center">Ready to drive your<br>next GTM launch?</h2>
+    <p class="section-sub reveal fade-up" style="text-align:center;margin:0 auto 60px;">Strategic product marketing expertise — available for roles in North America's SaaS, AI, and B2B tech markets.</p>
+
+    <div style="position:relative;display:flex;justify-content:center;">
+      <div class="contact-ripple contact-ripple-1"></div>
+      <div class="contact-ripple contact-ripple-2"></div>
+      <div class="contact-ripple contact-ripple-3"></div>
+      <div style="position:relative;z-index:2;text-align:center;" class="reveal fade-up">
+        <div class="contact-avatar">JJ</div>
+        <div class="contact-links">
+          <a href="tel:+15873049394" class="contact-link">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5.5A1.5 1.5 0 014.5 4h2a1.5 1.5 0 011.5 1.5v2a1.5 1.5 0 01-.44 1.06L6.5 9.5s1.5 3 4.5 4.5l.94-1.06A1.5 1.5 0 0113 12.5h2A1.5 1.5 0 0116.5 14v2A1.5 1.5 0 0115 17.5h-2C7.5 17.5 3 10.5 3 7.5V5.5z"/></svg>
+            +1 (587) 304-9394
+          </a>
+          <a href="mailto:jatinjollyjj@gmail.com" class="contact-link">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path stroke-linecap="round" d="M2 7l10 7 10-7"/></svg>
+            jatinjollyjj@gmail.com
+          </a>
+          <a href="https://linkedin.com/in/jatin-jolly-marketer" target="_blank" class="contact-link">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+            LinkedIn Profile
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2025 Jatin Jolly · Product Marketing Professional · Calgary, AB</p>
+</footer>
+
+<script>
+/* ─── LOADER ─── */
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('loader').classList.add('hidden');
+  }, 1700);
+});
+
+/* ─── CURSOR ─── */
+const dot = document.getElementById('cursor-dot');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+(function animateCursor() {
+  dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+  rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(animateCursor);
+})();
+document.querySelectorAll('a, button, .proj-card, .btn').forEach(el => {
+  el.addEventListener('mouseenter', () => { ring.style.width = '54px'; ring.style.height = '54px'; ring.style.borderColor = 'rgba(167,139,250,0.9)'; });
+  el.addEventListener('mouseleave', () => { ring.style.width = '34px'; ring.style.height = '34px'; ring.style.borderColor = 'rgba(167,139,250,0.55)'; });
+});
+
+/* ─── PARTICLE NETWORK ─── */
+const canvas = document.getElementById('particle-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [];
+const PARTICLE_COUNT = 90, MAX_DIST = 130;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function Particle() {
+  this.x = Math.random() * W; this.y = Math.random() * H;
+  this.vx = (Math.random() - 0.5) * 0.4;
+  this.vy = (Math.random() - 0.5) * 0.4;
+  this.r = Math.random() * 1.5 + 0.5;
+}
+for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+
+let pmx = W / 2, pmy = H / 2;
+document.addEventListener('mousemove', e => { pmx = e.clientX; pmy = e.clientY; });
+
+function drawParticles() {
+  ctx.clearRect(0, 0, W, H);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(91,110,245,0.6)';
+    ctx.fill();
+  });
+  // Connect
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < MAX_DIST) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(91,110,245,${0.18 * (1 - dist / MAX_DIST)})`;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+    }
+    // Mouse interaction
+    const mdx = particles[i].x - pmx, mdy = particles[i].y - pmy;
+    const md = Math.sqrt(mdx * mdx + mdy * mdy);
+    if (md < 160) {
+      ctx.beginPath();
+      ctx.moveTo(particles[i].x, particles[i].y);
+      ctx.lineTo(pmx, pmy);
+      ctx.strokeStyle = `rgba(167,139,250,${0.28 * (1 - md / 160)})`;
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+    }
+  }
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+/* ─── MARQUEE BUILD ─── */
+const companies = [
+  'Government e Marketplace', 'Pinaki Softcon', 'Eldeco Infrastructure',
+  'R K Swamy BBDO', 'Cooddle SaaS', 'HubSpot', 'Salesforce',
+  'Google Analytics 4', 'SEMrush', 'Adobe Creative Cloud', 'Tableau',
+  'Bow Valley College', 'Sheridan College'
+];
+const track = document.getElementById('marqueeTrack');
+const set = [...companies, ...companies]; // double for seamless
+set.forEach(c => {
+  const div = document.createElement('div');
+  div.className = 'marquee-item';
+  div.innerHTML = `<span class="dot"></span>${c}`;
+  track.appendChild(div);
+});
+
+/* ─── SCROLL REVEAL (IntersectionObserver) ─── */
+const revealEls = document.querySelectorAll('.reveal');
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+revealEls.forEach(el => revealObs.observe(el));
+
+/* ─── SKILL BARS (scroll-triggered) ─── */
+const skillBars = document.querySelectorAll('.skill-bar-fill');
+const skillObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.style.width = e.target.dataset.width + '%';
+      skillObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.4 });
+skillBars.forEach(bar => skillObs.observe(bar));
+</script>
+</body>
+</html>
